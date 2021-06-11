@@ -92,7 +92,7 @@ router.get('/', async (req,res)=> {
                 offset})
         }
         if (!date && !status && !teacherIds && studentsCount) {
-            lessons = await models.lessons.findAndCountAll({
+            const data = await models.lessons.findAndCountAll({
                 include:[
                     {
                         model: models.lesson_teachers,
@@ -105,8 +105,21 @@ router.get('/', async (req,res)=> {
                 limit,
                 offset
             })
-        }
+            lessons = data['rows'].filter(item => {
+                if(Array.isArray(studentsCount)){
+                    const [start,end] = studentsCount
+                    if(item["students"].length >= start && item["students"].length <= end) {
+                        return item
+                    }
 
+                    return item["students"].length
+                }else {
+                    if(item["students"].length == studentsCount) {
+                        return item
+                    }
+                }
+            })
+        }
          res.json(lessons)
 })
 
